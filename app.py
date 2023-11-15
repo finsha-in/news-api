@@ -66,7 +66,7 @@ def get_news_and_summary(company_name):
         del article['datePosted']
         formatted_articles.append(article)
 
-    summary = generate_summary(news, openai_api_key)
+    summary = generate_summary(news)
 
     return formatted_articles, summary
 
