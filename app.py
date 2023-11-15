@@ -90,7 +90,7 @@ def news():
 
 @app.route('/')
 def index():
-    return jsonify({'message': 'Welcome to the News Summary API'})
+    return jsonify({'message': 'Welcome to the News Summary API', 'subscription_key': subscription_key})
 
 if __name__ == "__main__":
     app.run(debug=True)
