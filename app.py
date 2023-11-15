@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
-openai_api_key = os.getenv('OPENAI_API_KEY')
+# openai_api_key = os.getenv('OPENAI_API_KEY')
 subscription_key = os.getenv('BING_API_KEY')
 
 app = Flask(__name__)
@@ -16,21 +16,10 @@ def clean_summary(text):
     cleaned_text = re.sub(r'\\u[0-9a-fA-F]{4}', '', text)
     return cleaned_text.strip()
 
-def generate_summary(news, openai_api_key, model="text-davinci-003", max_tokens=150):
+def generate_summary(news):
     headlines = [article['name'] for article in news['value']]
     combined_titles = " ".join(headlines)
-
-    openai.api_key = openai_api_key
-
-    response = openai.Completion.create(
-        engine=model,
-        prompt="Summarize the following news headlines:\n\n" + combined_titles,
-        max_tokens=max_tokens,
-        temperature=0.7
-    )
-
-    summary = response.choices[0].text.strip()
-
+    summary = combined_titles
     lines = summary.split('. ')
     if len(lines) > 1 and len(lines[-1].split()) < 10:
         summary = '. '.join(lines[:-1]) + '.'
