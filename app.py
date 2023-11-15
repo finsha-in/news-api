@@ -2,6 +2,18 @@ from flask import Flask, request, jsonify
 import requests
 from datetime import datetime
 import re
+from nltk.tokenize import sent_tokenize
+from sklearn.feature_extraction.text import TfidfVectorizer
+import numpy as np
+
+import nltk
+try:
+    nltk.data.find('tokenizers/punkt')
+except LookupError:
+    nltk.download('punkt')
+
+
+subscription_key = "07068875780c4a74bad61bddbede2826"
 
 app = Flask(__name__)
 
@@ -9,19 +21,31 @@ def clean_summary(text):
     cleaned_text = re.sub(r'\\u[0-9a-fA-F]{4}', '', text)
     return cleaned_text.strip()
 
-def generate_summary(news):
+def generate_summary(news, summary_proportion=0.1):
+    # Extracting headlines from the news articles
     headlines = [article['name'] for article in news['value']]
     combined_titles = " ".join(headlines)
-    summary = combined_titles
-    lines = summary.split('. ')
-    if len(lines) > 1 and len(lines[-1].split()) < 10:
-        summary = '. '.join(lines[:-1]) + '.'
 
-    return summary
+    # Function to split text into sentences
+    def split_into_sentences(text):
+        sentences = sent_tokenize(text)
+        return sentences
+
+    sentences = split_into_sentences(combined_titles)
+    num_sentences = len(sentences)
+    num_summary_sentences = max(int(num_sentences * summary_proportion), 1)  # Ensure at least one sentence
+
+    # Calculating TF-IDF and ranking sentences
+    tfidf_vectorizer = TfidfVectorizer(min_df=1, stop_words='english')
+    tfidf_matrix = tfidf_vectorizer.fit_transform(sentences)
+    sentence_scores = np.sum(tfidf_matrix.toarray(), axis=1)
+    top_sentence_indices = np.argsort(sentence_scores)[-num_summary_sentences:]
+    summary = [sentences[i] for i in sorted(top_sentence_indices)]
+
+    # Joining the top sentences to form a summary
+    return ' '.join(summary)
 
 def get_news_and_summary(company_name):
-    
-    subscription_key = "07068875780c4a74bad61bddbede2826"
     endpoint = f"https://api.bing.microsoft.com/v7.0/news/search?q={company_name}&category=Business&count=200&offset=0&mkt=en-in&safeSearch=Moderate&textFormat=Raw&textDecorations=false"
     headers = {"Ocp-Apim-Subscription-Key": subscription_key}
     response = requests.get(endpoint, headers=headers)
