@@ -2,13 +2,6 @@ from flask import Flask, request, jsonify
 import requests
 from datetime import datetime
 import re
-import openai
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
-# openai_api_key = os.getenv('OPENAI_API_KEY')
-subscription_key = os.getenv('BING_API_KEY')
 
 app = Flask(__name__)
 
@@ -27,6 +20,8 @@ def generate_summary(news):
     return summary
 
 def get_news_and_summary(company_name):
+    
+    subscription_key = "07068875780c4a74bad61bddbede2826"
     endpoint = f"https://api.bing.microsoft.com/v7.0/news/search?q={company_name}&category=Business&count=200&offset=0&mkt=en-in&safeSearch=Moderate&textFormat=Raw&textDecorations=false"
     headers = {"Ocp-Apim-Subscription-Key": subscription_key}
     response = requests.get(endpoint, headers=headers)
@@ -90,7 +85,7 @@ def news():
 
 @app.route('/')
 def index():
-    return jsonify({'message': 'Welcome to the News Summary API', 'subscription_key': subscription_key})
+    return jsonify({'message': 'Welcome to the News Summary API'})
 
 if __name__ == "__main__":
     app.run(debug=True)
